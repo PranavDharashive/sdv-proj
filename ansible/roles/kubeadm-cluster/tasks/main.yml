@@ -24,6 +24,14 @@
   args:
     creates: /etc/cni/net.d/calico-kubeconfig
 
+- name: Check if control-plane taint exists
+  command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.spec.taints}'
+  register: node_taints
+  changed_when: false
+  failed_when: false
+
 - name: Untaint control-plane node for single node cluster
   command: kubectl taint nodes {{ ansible_hostname }} node-role.kubernetes.io/control-plane:NoSchedule-
-  when: inventory_hostname == ansible_hostname
+  when: 
+    - inventory_hostname == ansible_hostname
+    - node_taints.stdout is search('node-role.kubernetes.io/control-plane:NoSchedule')

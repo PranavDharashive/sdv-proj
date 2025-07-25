@@ -43,10 +43,17 @@
     path: /etc/containerd
     state: directory
 
-- name: Configure containerd and use systemd cgroup driver
-  shell: |
-    containerd config default | sudo tee /etc/containerd/config.toml
-    sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+- name: Generate default containerd config if it doesn't exist
+  shell: containerd config default | sudo tee /etc/containerd/config.toml
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: Configure containerd to use systemd cgroup driver
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^\s*SystemdCgroup = false'
+    line: '            SystemdCgroup = true'
+    state: present
 
 - name: Restart containerd
   systemd:
