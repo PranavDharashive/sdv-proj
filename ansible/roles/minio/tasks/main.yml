@@ -1,0 +1,40 @@
+---
+- name: Create MinIO storage directory
+  file:
+    path: /mnt/minio-storage/
+    state: directory
+    mode: '0777'
+
+- name: Create minio namespace
+  kubernetes.core.k8s:
+    name: minio
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy MinIO
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/minio-deployment.yml"
+
+- name: Wait for MinIO deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: minio-deployment
+    namespace: minio
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get MinIO pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: minio
+    label_selectors:
+      - app=minio
+  register: minio_pods
+
+- name: Fail if MinIO pods are not running
+  fail:
+    msg: "MinIO pods are not running"
+  when: minio_pods.resources | length == 0 or minio_pods.resources[0].status.phase != 'Running'

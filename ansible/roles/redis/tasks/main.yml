@@ -1,0 +1,34 @@
+---
+- name: Create sdv namespace
+  kubernetes.core.k8s:
+    name: sdv
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy Redis
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/redis-deployment.yml"
+
+- name: Wait for Redis deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: redis-deployment
+    namespace: sdv
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get Redis pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: sdv
+    label_selectors:
+      - app=redis
+  register: redis_pods
+
+- name: Fail if Redis pods are not running
+  fail:
+    msg: "Redis pods are not running"
+  when: redis_pods.resources | length == 0 or redis_pods.resources[0].status.phase != 'Running'

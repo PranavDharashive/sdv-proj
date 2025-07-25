@@ -1,0 +1,27 @@
+---
+- name: Deploy sdv-frontend
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/sdv-frontend-deployment.yml"
+
+- name: Wait for sdv-frontend deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: sdv-frontend-deployment
+    namespace: sdv
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get sdv-frontend pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: sdv
+    label_selectors:
+      - app=sdv-frontend
+  register: sdv_frontend_pods
+
+- name: Fail if sdv-frontend pods are not running
+  fail:
+    msg: "sdv-frontend pods are not running"
+  when: sdv_frontend_pods.resources | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running'

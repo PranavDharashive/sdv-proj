@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Reset Kubernetes cluster
+      command: kubeadm reset -f
+      ignore_errors: yes
+
+    - name: Remove Kubernetes packages
+      apt:
+        name: "{{ item }}"
+        state: absent
+        autoremove: yes
+        purge: yes
+      loop:
+        - kubeadm
+        - kubectl
+        - kubelet
+
+    - name: Remove directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kubernetes
+        - "$HOME/.kube"
+        - /var/lib/etcd
+        - /mnt/mysql-db-data
+        - /mnt/minio-storage

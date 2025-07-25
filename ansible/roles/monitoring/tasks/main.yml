@@ -1,0 +1,61 @@
+---
+- name: Create monitoring namespace
+  kubernetes.core.k8s:
+    name: monitoring
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy Prometheus
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/prometheus-deployment.yml"
+
+- name: Deploy Grafana
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/grafana-deployment.yml"
+
+- name: Wait for Prometheus deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: prometheus-deployment
+    namespace: monitoring
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Wait for Grafana deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: grafana-deployment
+    namespace: monitoring
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get Prometheus pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: monitoring
+    label_selectors:
+      - app=prometheus
+  register: prometheus_pods
+
+- name: Fail if Prometheus pods are not running
+  fail:
+    msg: "Prometheus pods are not running"
+  when: prometheus_pods.resources | length == 0 or prometheus_pods.resources[0].status.phase != 'Running'
+
+- name: Get Grafana pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: monitoring
+    label_selectors:
+      - app=grafana
+  register: grafana_pods
+
+- name: Fail if Grafana pods are not running
+  fail:
+    msg: "Grafana pods are not running"
+  when: grafana_pods.resources | length == 0 or grafana_pods.resources[0].status.phase != 'Running'

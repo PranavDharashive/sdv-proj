@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    k8s_version: "1.31.0"
+  roles:
+    - k8s-prereqs
+    - kubeadm-cluster
+    - monitoring
+    - redis
+    - mysql
+    - minio
+    - sdv-app
+    - sdv-frontend

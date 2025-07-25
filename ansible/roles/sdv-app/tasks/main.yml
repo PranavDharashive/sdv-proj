@@ -1,0 +1,27 @@
+---
+- name: Deploy sdv-app
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/sdv-app-deployment.yml"
+
+- name: Wait for sdv-app deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: sdv-app-deployment
+    namespace: sdv
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get sdv-app pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: sdv
+    label_selectors:
+      - app=sdv-app
+  register: sdv_app_pods
+
+- name: Fail if sdv-app pods are not running
+  fail:
+    msg: "sdv-app pods are not running"
+  when: sdv_app_pods.resources | length == 0 or sdv_app_pods.resources[0].status.phase != 'Running'

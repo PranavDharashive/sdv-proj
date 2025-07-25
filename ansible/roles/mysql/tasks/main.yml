@@ -1,0 +1,47 @@
+---
+- name: Create MySQL data directory
+  file:
+    path: /mnt/mysql-db-data/
+    state: directory
+    mode: '0777'
+
+- name: Create local storage class
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/local-storage-class.yml"
+
+- name: Deploy MySQL
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/mysql-deployment.yml"
+
+- name: Wait for MySQL deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: mysql-deployment
+    namespace: sdv
+    wait: yes
+    wait_condition: available
+    wait_timeout: 300
+
+- name: Get MySQL pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: sdv
+    label_selectors:
+      - app=mysql
+  register: mysql_pods
+
+- name: Fail if MySQL pods are not running
+  fail:
+    msg: "MySQL pods are not running"
+  when: mysql_pods.resources | length == 0 or mysql_pods.resources[0].status.phase != 'Running'
+
+- name: Create sdv_data database and user
+  kubernetes.core.k8s_exec:
+    namespace: sdv
+    pod: "{{ item.metadata.name }}"
+    command: ["/bin/sh", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e \"CREATE DATABASE IF NOT EXISTS sdv_data; CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'abcd1234'; GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\""]
+  with_items: "{{ mysql_pods.resources }}"
+  vars:
+    mysql_root_password: "admin"

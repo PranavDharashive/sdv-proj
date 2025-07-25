@@ -1,0 +1,29 @@
+---
+- name: Initialize the Kubernetes cluster using kubeadm
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} --kubernetes-version {{ k8s_version }}
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Setup kubeconfig for user
+  file:
+    path: "$HOME/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Copy admin.conf to user's kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "$HOME/.kube/config"
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Install Calico CNI
+  command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+  args:
+    creates: /etc/cni/net.d/calico-kubeconfig
+
+- name: Untaint control-plane node for single node cluster
+  command: kubectl taint nodes {{ ansible_hostname }} node-role.kubernetes.io/control-plane:NoSchedule-
+  when: inventory_hostname == ansible_hostname
