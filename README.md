@@ -41,3 +41,40 @@ Create automation to install and configure the following with a single command o
     *   Deploy MinIO on k8s with a local volume and a Kubernetes service.
 20. **Logging:** Store all execution logs into a single file in the project directory.
 21. **Documentation:** This `README.md` file will serve as documentation for prerequisites and execution steps.
+
+## Prerequisites
+
+*   An Ubuntu 22.04 LTS virtual machine.
+*   `git` installed to clone this repository.
+*   `ansible` installed on the machine where you will run the playbooks.
+
+## Usage
+
+### Installation
+
+1.  Clone this repository to your Ubuntu 22.04 LTS VM:
+    ```bash
+    git clone <repository_url>
+    cd <repository_directory>
+    ```
+2.  Make the installation script executable:
+    ```bash
+    chmod +x install.sh
+    ```
+3.  Run the installation script:
+    ```bash
+    ./install.sh
+    ```
+    This script will execute the Ansible playbook, and all logs will be stored in a file named `install-<timestamp>.log` in the current directory.
+
+### Cleanup
+
+1.  Make the cleanup script executable:
+    ```bash
+    chmod +x cleanup.sh
+    ```
+2.  Run the cleanup script:
+    ```bash
+    ./cleanup.sh
+    ```
+    This script will execute the Ansible cleanup playbook, and all logs will be stored in a file named `cleanup-<timestamp>.log` in the current directory.
