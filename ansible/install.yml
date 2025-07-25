@@ -7,9 +7,12 @@
     - k8s-prereqs
     - kubeadm-cluster
 
-- name: Wait for Kubernetes cluster to stabilize
-  pause:
-    minutes: 2
+- hosts: all
+  become: yes
+  tasks:
+    - name: Wait for Kubernetes cluster to stabilize
+      pause:
+        minutes: 2
 
 - hosts: all
   become: yes
