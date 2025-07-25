@@ -48,7 +48,7 @@
     namespace: monitoring
     wait: yes
     wait_condition: available
-    wait_timeout: 300
+    wait_timeout: 60
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for Grafana deployment to be ready
@@ -58,7 +58,7 @@
     namespace: monitoring
     wait: yes
     wait_condition: available
-    wait_timeout: 300
+    wait_timeout: 60
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get Prometheus pods
