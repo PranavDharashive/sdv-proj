@@ -37,6 +37,12 @@
     - gnupg
     - lsb-release
     - containerd
+    - python3-pip
+
+- name: Install Kubernetes Python client
+  pip:
+    name: kubernetes
+    executable: pip3
 
 - name: Create containerd config directory
   file:
