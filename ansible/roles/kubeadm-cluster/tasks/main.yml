@@ -19,6 +19,25 @@
     group: "{{ ansible_user_id }}"
     mode: '0644'
 
+- name: Verify kubeconfig file permissions and ownership
+  stat:
+    path: "{{ ansible_user_dir }}/.kube/config"
+  register: kubeconfig_stat
+
+- name: Debug - Kubeconfig file stats
+  debug:
+    var: kubeconfig_stat
+
+- name: Debug - Kubeconfig file content
+  command: cat "{{ ansible_user_dir }}/.kube/config"
+  register: kubeconfig_content
+  changed_when: false
+  no_log: true
+
+- name: Debug - Print Kubeconfig content
+  debug:
+    var: kubeconfig_content.stdout
+
 - name: Install Calico CNI
   command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
   args:
