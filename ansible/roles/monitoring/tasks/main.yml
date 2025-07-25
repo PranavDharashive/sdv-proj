@@ -29,6 +29,18 @@
     src: "{{ role_path }}/files/grafana-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get Prometheus deployment info
+  command: kubectl get deployment prometheus-deployment -n monitoring -o json
+  register: prometheus_deployment_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print Prometheus deployment info
+  debug:
+    var: prometheus_deployment_info.stdout
+
 - name: Wait for Prometheus deployment to be ready
   kubernetes.core.k8s_info:
     kind: Deployment
