@@ -3,6 +3,7 @@
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/sdv-frontend-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for sdv-frontend deployment to be ready
   kubernetes.core.k8s_info:
@@ -12,6 +13,7 @@
     wait: yes
     wait_condition: available
     wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get sdv-frontend pods
   kubernetes.core.k8s_info:
@@ -19,6 +21,7 @@
     namespace: sdv
     label_selectors:
       - app=sdv-frontend
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: sdv_frontend_pods
 
 - name: Fail if sdv-frontend pods are not running

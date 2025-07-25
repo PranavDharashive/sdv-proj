@@ -5,11 +5,13 @@
     api_version: v1
     kind: Namespace
     state: present
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Redis
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/redis-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for Redis deployment to be ready
   kubernetes.core.k8s_info:
@@ -19,6 +21,7 @@
     wait: yes
     wait_condition: available
     wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get Redis pods
   kubernetes.core.k8s_info:
@@ -26,6 +29,7 @@
     namespace: sdv
     label_selectors:
       - app=redis
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: redis_pods
 
 - name: Fail if Redis pods are not running

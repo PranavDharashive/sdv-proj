@@ -1,20 +1,33 @@
 ---
+- name: Debug - Get Kubernetes nodes info
+  command: kubectl get nodes -o json
+  register: kubectl_get_nodes_output
+  changed_when: false
+  failed_when: false
+
+- name: Debug - Print Kubernetes nodes info
+  debug:
+    var: kubectl_get_nodes_output.stdout
+
 - name: Create monitoring namespace
   kubernetes.core.k8s:
     name: monitoring
     api_version: v1
     kind: Namespace
     state: present
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Prometheus
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/prometheus-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Grafana
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/grafana-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for Prometheus deployment to be ready
   kubernetes.core.k8s_info:
@@ -24,6 +37,7 @@
     wait: yes
     wait_condition: available
     wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for Grafana deployment to be ready
   kubernetes.core.k8s_info:
@@ -33,6 +47,7 @@
     wait: yes
     wait_condition: available
     wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get Prometheus pods
   kubernetes.core.k8s_info:
@@ -40,6 +55,7 @@
     namespace: monitoring
     label_selectors:
       - app=prometheus
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: prometheus_pods
 
 - name: Fail if Prometheus pods are not running
@@ -53,6 +69,7 @@
     namespace: monitoring
     label_selectors:
       - app=grafana
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: grafana_pods
 
 - name: Fail if Grafana pods are not running

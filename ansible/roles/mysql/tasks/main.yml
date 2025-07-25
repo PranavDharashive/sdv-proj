@@ -9,11 +9,13 @@
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/local-storage-class.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/mysql-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Wait for MySQL deployment to be ready
   kubernetes.core.k8s_info:
@@ -23,6 +25,7 @@
     wait: yes
     wait_condition: available
     wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get MySQL pods
   kubernetes.core.k8s_info:
@@ -30,6 +33,7 @@
     namespace: sdv
     label_selectors:
       - app=mysql
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: mysql_pods
 
 - name: Fail if MySQL pods are not running
@@ -42,6 +46,7 @@
     namespace: sdv
     pod: "{{ item.metadata.name }}"
     command: ["/bin/sh", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e \"CREATE DATABASE IF NOT EXISTS sdv_data; CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'abcd1234'; GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\""]
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   with_items: "{{ mysql_pods.resources }}"
   vars:
     mysql_root_password: "admin"

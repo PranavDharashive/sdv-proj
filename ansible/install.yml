@@ -6,6 +6,16 @@
   roles:
     - k8s-prereqs
     - kubeadm-cluster
+
+- name: Wait for Kubernetes cluster to stabilize
+  pause:
+    minutes: 2
+
+- hosts: all
+  become: yes
+  vars:
+    k8s_version: "1.31.0"
+  roles:
     - monitoring
     - redis
     - mysql
