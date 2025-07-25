@@ -19,6 +19,15 @@
     group: "{{ ansible_user_id }}"
     mode: '0644'
 
+- name: Copy admin.conf to root's kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/root/.kube/config"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0600'
+
 - name: Verify kubeconfig file permissions and ownership
   stat:
     path: "{{ ansible_user_dir }}/.kube/config"
