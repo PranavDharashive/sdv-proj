@@ -15,8 +15,8 @@
     src: /etc/kubernetes/admin.conf
     dest: "$HOME/.kube/config"
     remote_src: yes
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
     mode: '0644'
 
 - name: Install Calico CNI
