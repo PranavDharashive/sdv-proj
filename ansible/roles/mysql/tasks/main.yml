@@ -17,14 +17,23 @@
     src: "{{ role_path }}/files/mysql-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get MySQL deployment info
+  command: kubectl get deployment mysql-deployment -n sdv -o json
+  register: mysql_deployment_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MySQL deployment info
+  debug:
+    var: mysql_deployment_info.stdout
+
 - name: Wait for MySQL deployment to be ready
   kubernetes.core.k8s_info:
     kind: Deployment
     name: mysql-deployment
     namespace: sdv
-    wait: yes
-    wait_condition: available
-    wait_timeout: 300
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get MySQL pods

@@ -19,14 +19,23 @@
     src: "{{ role_path }}/files/minio-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get MinIO deployment info
+  command: kubectl get deployment minio-deployment -n minio -o json
+  register: minio_deployment_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MinIO deployment info
+  debug:
+    var: minio_deployment_info.stdout
+
 - name: Wait for MinIO deployment to be ready
   kubernetes.core.k8s_info:
     kind: Deployment
     name: minio-deployment
     namespace: minio
-    wait: yes
-    wait_condition: available
-    wait_timeout: 300
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get MinIO pods
