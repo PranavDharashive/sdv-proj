@@ -25,5 +25,3 @@
         - /etc/kubernetes
         - "$HOME/.kube"
         - /var/lib/etcd
-        - /mnt/mysql-db-data
-        - /mnt/minio-storage
