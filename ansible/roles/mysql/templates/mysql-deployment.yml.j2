@@ -20,7 +20,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - ubuntu-s-1vcpu-1gb-amd-blr1-01
+          - "{{ k8s_node_name.stdout }}"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

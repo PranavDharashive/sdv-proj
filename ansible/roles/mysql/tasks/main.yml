@@ -11,10 +11,17 @@
     src: "{{ role_path }}/files/local-storage-class.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Get Kubernetes node name
+  command: kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+  register: k8s_node_name
+  changed_when: false
+  environment:
+    KUBECONFIG: "/root/.kube/config"
+
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/mysql-deployment.yml"
+    src: "{{ role_path }}/templates/mysql-deployment.yml.j2"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Get MySQL deployment info
