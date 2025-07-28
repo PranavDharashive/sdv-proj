@@ -13,14 +13,23 @@
     src: "{{ role_path }}/files/redis-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get Redis deployment info
+  command: kubectl get deployment redis-deployment -n sdv -o json
+  register: redis_deployment_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print Redis deployment info
+  debug:
+    var: redis_deployment_info.stdout
+
 - name: Wait for Redis deployment to be ready
   kubernetes.core.k8s_info:
     kind: Deployment
     name: redis-deployment
     namespace: sdv
-    wait: yes
-    wait_condition: available
-    wait_timeout: 300
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Get Redis pods
