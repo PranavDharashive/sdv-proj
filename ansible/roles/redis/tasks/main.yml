@@ -41,6 +41,10 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: redis_pods
 
+- name: Debug - Redis pods info
+  debug:
+    var: redis_pods
+
 - name: Fail if Redis pods are not running
   fail:
     msg: "Redis pods are not running"
