@@ -26,7 +26,7 @@
         purge: yes
 
     - name: Flush iptables rules
-      command: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+      shell: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
 
     - name: Remove directories
       file:
