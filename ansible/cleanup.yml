@@ -12,6 +12,7 @@
         state: absent
         autoremove: yes
         purge: yes
+        allow_change_held_packages: yes
       loop:
         - kubeadm
         - kubectl
