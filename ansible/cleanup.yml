@@ -25,6 +25,9 @@
         autoremove: yes
         purge: yes
 
+    - name: Flush iptables rules
+      command: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
     - name: Remove directories
       file:
         path: "{{ item }}"
@@ -34,3 +37,4 @@
         - "$HOME/.kube"
         - /var/lib/etcd
         - /etc/containerd
+        - /etc/cni
