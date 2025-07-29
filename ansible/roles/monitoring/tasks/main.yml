@@ -64,6 +64,10 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: prometheus_pods
 
+- name: Debug - Prometheus pods info
+  debug:
+    var: prometheus_pods
+
 - name: Fail if Prometheus pods are not running
   fail:
     msg: "Prometheus pods are not running"
