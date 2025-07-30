@@ -38,10 +38,15 @@
   debug:
     var: k8s_node_name.stdout
 
+- name: Render MySQL PersistentVolume template
+  template:
+    src: "{{ role_path }}/templates/mysql-pv.yml.j2"
+    dest: "/tmp/mysql-pv.yml"
+
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/mysql-pv.yml"
+    src: "/tmp/mysql-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy MySQL PersistentVolumeClaim
