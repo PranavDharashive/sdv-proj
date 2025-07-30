@@ -93,4 +93,4 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   with_items: "{{ mysql_pods.resources }}"
   vars:
-    mysql_root_password: "admin"}
+    mysql_root_password: "admin"
