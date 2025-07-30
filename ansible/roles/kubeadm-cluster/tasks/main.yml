@@ -1,6 +1,6 @@
 ---
 - name: Initialize the Kubernetes cluster using kubeadm
-  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} --kubernetes-version {{ k8s_version }}
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address={{ kube_api_ip }} --kubernetes-version {{ k8s_version }}
   args:
     creates: /etc/kubernetes/admin.conf
 
@@ -59,16 +59,10 @@
   environment:
     KUBECONFIG: "/root/.kube/config"
 
-- name: Check if control-plane taint exists on the node
-  command: kubectl get nodes {{ k8s_node_name.stdout }} -o jsonpath='{.spec.taints}'
-  register: node_taints_check
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "/root/.kube/config"
-
 - name: Untaint control-plane node for single node cluster
   command: kubectl taint nodes {{ k8s_node_name.stdout }} node-role.kubernetes.io/control-plane:NoSchedule-
   environment:
     KUBECONFIG: "/root/.kube/config"
-  when: node_taints_check.stdout is search('node-role.kubernetes.io/control-plane:NoSchedule')
+  register: taint_removal_result
+  failed_when: "taint_removal_result.rc != 0 and 'not found' not in taint_removal_result.stderr"
+  changed_when: "taint_removal_result.rc == 0"
