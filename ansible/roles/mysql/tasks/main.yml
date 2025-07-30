@@ -99,7 +99,7 @@
 - name: Fail if MySQL pods are not running
   fail:
     msg: "MySQL pods are not running"
-  when: mysql_pods.resources | length == 0 or mysql_pods.resources[0].status.phase != 'Running'
+  when: mysql_pods.resources | length == 0 or mysql_pods.resources[0].status.phase != 'Running' or not mysql_pods.resources[0].status.containerStatuses[0].ready
 
 - name: Create sdv_data database and user
   kubernetes.core.k8s_exec:

@@ -48,4 +48,4 @@
 - name: Fail if Redis pods are not running
   fail:
     msg: "Redis pods are not running"
-  when: redis_pods.resources | length == 0 or redis_pods.resources[0].status.phase != 'Running'
+  when: redis_pods.resources | length == 0 or redis_pods.resources[0].status.phase != 'Running' or not redis_pods.resources[0].status.containerStatuses[0].ready

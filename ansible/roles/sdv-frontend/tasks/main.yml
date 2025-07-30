@@ -36,4 +36,4 @@
 - name: Fail if sdv-frontend pods are not running
   fail:
     msg: "sdv-frontend pods are not running"
-  when: sdv_frontend_pods.resources | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running'
+  when: sdv_frontend_pods.resources | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running' or not sdv_frontend_pods.resources[0].status.containerStatuses[0].ready

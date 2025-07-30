@@ -50,4 +50,4 @@
 - name: Fail if MinIO pods are not running
   fail:
     msg: "MinIO pods are not running"
-  when: minio_pods.resources | length == 0 or minio_pods.resources[0].status.phase != 'Running'
+  when: minio_pods.resources | length == 0 or minio_pods.resources[0].status.phase != 'Running' or not minio_pods.resources[0].status.containerStatuses[0].ready
