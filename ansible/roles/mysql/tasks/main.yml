@@ -18,11 +18,39 @@
   environment:
     KUBECONFIG: "/root/.kube/config"
 
+- name: Debug - Kubernetes node name
+  debug:
+    var: k8s_node_name.stdout
+
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/templates/mysql-deployment.yml.j2"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Get MySQL PV info
+  command: kubectl get pv mysql-pv -o json
+  register: mysql_pv_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MySQL PV info
+  debug:
+    var: mysql_pv_info.stdout
+
+- name: Debug - Get MySQL PVC info
+  command: kubectl get pvc mysql-pvc -n sdv -o json
+  register: mysql_pvc_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MySQL PVC info
+  debug:
+    var: mysql_pvc_info.stdout
 
 - name: Debug - Get MySQL deployment info
   command: kubectl get deployment mysql-deployment -n sdv -o json
@@ -65,4 +93,4 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   with_items: "{{ mysql_pods.resources }}"
   vars:
-    mysql_root_password: "admin"
+    mysql_root_password: "admin"}
