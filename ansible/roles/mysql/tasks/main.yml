@@ -163,6 +163,14 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: mysql_pods
 
+- name: Debug - MySQL pods info (before fail check)
+  debug:
+    var: mysql_pods
+
+- name: Pause for a few seconds before checking MySQL pod status
+  pause:
+    seconds: 5
+
 - name: Fail if MySQL pods are not running
   fail:
     msg: "MySQL pods are not running"
