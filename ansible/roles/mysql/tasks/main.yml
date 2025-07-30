@@ -34,6 +34,10 @@
   debug:
     var: kubectl_get_nodes_full_output.stdout_lines
 
+- name: Debug - Kubernetes node name used for PV
+  debug:
+    var: k8s_node_name.stdout
+
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
