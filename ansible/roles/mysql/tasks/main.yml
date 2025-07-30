@@ -38,10 +38,37 @@
   debug:
     var: k8s_node_name.stdout
 
+- name: Deploy MySQL PersistentVolume
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/mysql-pv.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy MySQL PersistentVolumeClaim
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/mysql-pvc.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Wait for MySQL PVC to be bound
+  kubernetes.core.k8s_info:
+    kind: PersistentVolumeClaim
+    name: mysql-pvc
+    namespace: sdv
+    wait: yes
+    wait_condition: Bound
+    wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Render MySQL deployment template
+  template:
+    src: "{{ role_path }}/templates/mysql-deployment.yml.j2"
+    dest: "/tmp/mysql-deployment.yml"
+
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/templates/mysql-deployment.yml.j2"
+    src: "/tmp/mysql-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Get MySQL PV info
