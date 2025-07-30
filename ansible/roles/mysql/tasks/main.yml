@@ -93,10 +93,12 @@
     kind: PersistentVolumeClaim
     name: mysql-pvc
     namespace: sdv
-    wait: yes
-    wait_condition: Bound
-    wait_timeout: 300
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: mysql_pvc_info
+
+- name: Debug - MySQL PVC info after wait
+  debug:
+    var: mysql_pvc_info
 
 - name: Render MySQL deployment template
   template:
