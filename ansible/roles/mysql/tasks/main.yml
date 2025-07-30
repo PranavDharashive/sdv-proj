@@ -22,6 +22,18 @@
   debug:
     var: k8s_node_name.stdout
 
+- name: Debug - Full kubectl get nodes output
+  command: kubectl get nodes
+  register: kubectl_get_nodes_full_output
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "/root/.kube/config"
+
+- name: Debug - Print full kubectl get nodes output
+  debug:
+    var: kubectl_get_nodes_full_output.stdout_lines
+
 - name: Deploy MySQL
   kubernetes.core.k8s:
     state: present
