@@ -59,16 +59,7 @@
   environment:
     KUBECONFIG: "/root/.kube/config"
 
-- name: Check if control-plane taint exists on the node
-  command: kubectl get nodes {{ k8s_node_name.stdout }} -o jsonpath='{.spec.taints}'
-  register: node_taints_check
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "/root/.kube/config"
-
 - name: Untaint control-plane node for single node cluster
   command: kubectl taint nodes {{ k8s_node_name.stdout }} node-role.kubernetes.io/control-plane:NoSchedule-
   environment:
     KUBECONFIG: "/root/.kube/config"
-  when: node_taints_check.stdout is search('node-role.kubernetes.io/control-plane:NoSchedule')
