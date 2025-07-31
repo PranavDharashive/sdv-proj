@@ -12,20 +12,20 @@ export KUBECONFIG="$HOME/.kube/config"
 ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_IP" | tee $LOG_FILE
 
 # Check if the ansible-playbook command was successful
-if [ $? -eq 0 ]; then
-  echo "\n===================================================="
-  echo "All components deployed and running successfully:"
-  echo "===================================================="
-  echo "1. Kubernetes cluster (v1.31) is up and running."
-  echo "2. Monitoring stack (Prometheus & Grafana) is up and running."
-  echo "3. Redis service is up and running."
-  echo "4. MySQL service is up and running."
-  echo "5. MinIO service is up and running."
-  echo "6. SDV application is up and running."
-  echo "7. SDV Nginx/frontend application is up and running."
-  echo "===================================================="
-else
-  echo "\n===================================================="
-  echo "Installation failed. Please check the logs in $LOG_FILE for details."
-  echo "===================================================="
-fi
+# if [ $? -eq 0 ]; then
+#   echo "===================================================="
+#   echo "All components deployed and running successfully:"
+#   echo "===================================================="
+#   echo "1. Kubernetes cluster (v1.31) is up and running."
+#   echo "2. Monitoring stack (Prometheus & Grafana) is up and running."
+#   echo "3. Redis service is up and running."
+#   echo "4. MySQL service is up and running."
+#   echo "5. MinIO service is up and running."
+#   echo "6. SDV application is up and running."
+#   echo "7. SDV Nginx/frontend application is up and running."
+#   echo "===================================================="
+# else
+#   echo "\n===================================================="
+#   echo "Installation failed. Please check the logs in $LOG_FILE for details."
+#   echo "===================================================="
+# fi

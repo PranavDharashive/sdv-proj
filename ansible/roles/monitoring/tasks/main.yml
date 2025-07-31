@@ -20,13 +20,13 @@
 - name: Deploy Node Exporter DaemonSet
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../k8s-manifests/node-exporter-daemonset.yml"
+    src: "{{ playbook_dir }}/../k8s-manifests/node-exporter-daemonset.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Node Exporter Service
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../k8s-manifests/node-exporter-service.yml"
+    src: "{{ playbook_dir }}/../k8s-manifests/node-exporter-service.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Prometheus
