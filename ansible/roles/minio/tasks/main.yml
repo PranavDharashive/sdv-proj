@@ -52,10 +52,6 @@
   template:
     src: "{{ role_path }}/templates/minio-pv.yml.j2"
     dest: "/tmp/minio-pv.yml"
-  when: (normalized_existing_minio_pv_resources | length == 0) or 
-        (normalized_existing_minio_pv_resources | length > 0 and 
-         (normalized_existing_minio_pv_resources[0].spec.nodeAffinity is not defined or 
-          normalized_existing_minio_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MinIO PersistentVolume
   kubernetes.core.k8s:
