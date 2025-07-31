@@ -35,10 +35,28 @@
     src: "{{ role_path }}/files/prometheus-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Deploy Prometheus ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/prometheus-config.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
 - name: Deploy Grafana
   kubernetes.core.k8s:
     state: present
     src: "{{ role_path }}/files/grafana-deployment.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy Grafana Datasources ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/grafana-datasources.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy Grafana Dashboards ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/grafana-dashboards.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Get Prometheus deployment info
