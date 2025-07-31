@@ -24,11 +24,56 @@
     state: present
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Get existing MinIO PersistentVolume info
+  kubernetes.core.k8s_info:
+    kind: PersistentVolume
+    name: minio-pv
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: existing_minio_pv_info
+  ignore_errors: yes
+
+- name: Debug - Existing MinIO PV info (full variable)
+  debug:
+    var: existing_minio_pv_info
+
+- name: Debug - Type of existing_minio_pv_info.resources
+  debug:
+    msg: "Type of existing_minio_pv_info.resources: {{ existing_minio_pv_info.resources | type_debug }}"
+
+- name: Debug - Content of existing_minio_pv_info.resources
+  debug:
+    var: existing_minio_pv_info.resources
+
+- name: Set fact for normalized existing_minio_pv_resources
+  set_fact:
+    normalized_existing_minio_pv_resources: "{{ existing_minio_pv_info.resources | default([]) }}"
+
+- name: Render MinIO PersistentVolume template
+  template:
+    src: "{{ role_path }}/templates/minio-pv.yml.j2"
+    dest: "/tmp/minio-pv.yml"
+  when: (normalized_existing_minio_pv_resources | length == 0) or \
+        (normalized_existing_minio_pv_resources | length > 0 and \
+         (normalized_existing_minio_pv_resources[0].spec.nodeAffinity is not defined or \
+          normalized_existing_minio_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
+
 - name: Deploy MinIO PersistentVolume
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/templates/minio-pv.yml.j2"
+    src: "/tmp/minio-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: minio_pv_deploy_result
+  ignore_errors: yes
+
+- name: Fail if MinIO PV deployment failed due to immutable field
+  fail:
+    msg: |
+      Failed to deploy MinIO PersistentVolume 'minio-pv'.
+      Error: {{ minio_pv_deploy_result.msg }}
+      This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
+      If this PV contains important data, please back it up manually.
+      Then, delete the existing PV and PVC (kubectl delete pv minio-pv pvc minio-pvc -n minio) and re-run the playbook.
+  when: minio_pv_deploy_result.failed and 'field is immutable' in minio_pv_deploy_result.msg
 
 - name: Deploy MinIO PersistentVolumeClaim
   kubernetes.core.k8s:
@@ -56,6 +101,30 @@
     state: present
     src: "/tmp/minio-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Get MinIO PV info
+  command: kubectl get pv minio-pv -o json
+  register: minio_pv_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MinIO PV info
+  debug:
+    var: minio_pv_info.stdout
+
+- name: Debug - Get MinIO PVC info
+  command: kubectl get pvc minio-pvc -n minio -o json
+  register: minio_pvc_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MinIO PVC info
+  debug:
+    var: minio_pvc_info.stdout
 
 - name: Debug - Get MinIO deployment info
   command: kubectl get deployment minio-deployment -n minio -o json
