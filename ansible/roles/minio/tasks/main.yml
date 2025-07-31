@@ -5,6 +5,17 @@
     state: directory
     mode: '0777'
 
+- name: Get Kubernetes node name
+  command: kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+  register: k8s_node_name
+  changed_when: false
+  environment:
+    KUBECONFIG: "/root/.kube/config"
+
+- name: Debug - Kubernetes node name for MinIO PV
+  debug:
+    var: k8s_node_name.stdout
+
 - name: Create minio namespace
   kubernetes.core.k8s:
     name: minio
@@ -13,10 +24,37 @@
     state: present
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Deploy MinIO PersistentVolume
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/templates/minio-pv.yml.j2"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy MinIO PersistentVolumeClaim
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/minio-pvc.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Wait for MinIO PVC to be bound
+  kubernetes.core.k8s_info:
+    kind: PersistentVolumeClaim
+    name: minio-pvc
+    namespace: minio
+    wait: yes
+    wait_condition: Bound
+    wait_timeout: 300
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Render MinIO deployment template
+  template:
+    src: "{{ role_path }}/templates/minio-deployment.yml.j2"
+    dest: "/tmp/minio-deployment.yml"
+
 - name: Deploy MinIO
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/minio-deployment.yml"
+    src: "/tmp/minio-deployment.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Get MinIO deployment info
