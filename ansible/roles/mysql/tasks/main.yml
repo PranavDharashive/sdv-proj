@@ -50,14 +50,14 @@
   debug:
     var: existing_mysql_pv_info
 
-- name: Render MySQL PersistentVolume template
-  template:
-    src: "{{ role_path }}/templates/mysql-pv.yml.j2"
-    dest: "/tmp/mysql-pv.yml"
-  when: not existing_mysql_pv_info.resources is defined or existing_mysql_pv_info.resources | length == 0 or \
-        (existing_mysql_pv_info.resources is defined and existing_mysql_pv_info.resources | length > 0 and \
-         (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or \
-          existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
+# - name: Render MySQL PersistentVolume template
+#   template:
+#     src: "{{ role_path }}/templates/mysql-pv.yml.j2"
+#     dest: "/tmp/mysql-pv.yml"
+#   when: not existing_mysql_pv_info.resources is defined or existing_mysql_pv_info.resources | length == 0 or \
+#         (existing_mysql_pv_info.resources is defined and existing_mysql_pv_info.resources | length > 0 and \
+#          (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or \
+#           existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
@@ -71,7 +71,7 @@
 
 - name: Fail if existing MySQL PV has incorrect nodeAffinity
   fail:
-    msg: |
+    msg: |-
       Existing MySQL PersistentVolume 'mysql-pv' has an incorrect nodeAffinity.
       Current: {{ existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] }}
       Expected: {{ k8s_node_name.stdout }}
