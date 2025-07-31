@@ -161,6 +161,8 @@
     namespace: sdv
     pod: "{{ item.metadata.name }}"
     command: ["/bin/sh", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e \"CREATE DATABASE IF NOT EXISTS sdv_data; CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'abcd1234'; GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\""]
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   with_items: "{{ mysql_pods.resources }}"
   vars:
