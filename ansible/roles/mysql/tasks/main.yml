@@ -38,28 +38,48 @@
   debug:
     var: k8s_node_name.stdout
 
+- name: Get existing MySQL PersistentVolume info
+  kubernetes.core.k8s_info:
+    kind: PersistentVolume
+    name: mysql-pv
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: existing_mysql_pv_info
+  ignore_errors: yes
+
+- name: Debug - Existing MySQL PV info (full variable)
+  debug:
+    var: existing_mysql_pv_info
+
+- name: Debug - Type of existing_mysql_pv_info.resources
+  debug:
+    msg: "Type of existing_mysql_pv_info.resources: {{ existing_mysql_pv_info.resources | type_debug }}"
+
+- name: Debug - Content of existing_mysql_pv_info.resources
+  debug:
+    var: existing_mysql_pv_info.resources
+
 - name: Render MySQL PersistentVolume template
   template:
     src: "{{ role_path }}/templates/mysql-pv.yml.j2"
     dest: "/tmp/mysql-pv.yml"
+  when: (existing_mysql_pv_info.resources | default([]) | length == 0) or (existing_mysql_pv_info.resources | default([]) | length > 0 and (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
     state: present
     src: "/tmp/mysql-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: mysql_pv_deploy_result
-  ignore_errors: yes
+  when: (existing_mysql_pv_info.resources | default([]) | length == 0) or (existing_mysql_pv_info.resources | default([]) | length > 0 and (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
-- name: Fail if MySQL PV deployment failed due to immutable field
+- name: Fail if existing MySQL PV has incorrect nodeAffinity
   fail:
     msg: |
-      Failed to deploy MySQL PersistentVolume 'mysql-pv'.
-      Error: {{ mysql_pv_deploy_result.msg }}
-      This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
+      Existing MySQL PersistentVolume 'mysql-pv' has an incorrect nodeAffinity.
+      Current: {{ existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] }}
+      Expected: {{ k8s_node_name.stdout }}
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv mysql-pv pvc mysql-pvc -n sdv) and re-run the playbook.
-  when: mysql_pv_deploy_result.failed and 'field is immutable' in mysql_pv_deploy_result.msg
+  when: (existing_mysql_pv_info.resources | default([]) | length > 0) and (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout)
 
 
 - name: Deploy MySQL PersistentVolumeClaim
@@ -157,13 +177,17 @@
   when: mysql_pods.resources | length == 0 or mysql_pods.resources[0].status.phase != 'Running' or not mysql_pods.resources[0].status.containerStatuses[0].ready
 
 - name: Create sdv_data database and user
-  kubernetes.core.k8s_exec:
-    namespace: sdv
-    pod: "{{ item.metadata.name }}"
-    command: ["/bin/sh", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e \"CREATE DATABASE IF NOT EXISTS sdv_data; CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'abcd1234'; GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\""]
-    environment:
-      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  with_items: "{{ mysql_pods.resources }}"
+  shell: |
+    kubectl exec -n sdv {{ item.metadata.name }} -- \
+    mysql -h '127.0.0.1' -P '3306' -u root -p'{{ mysql_root_password }}' -e "\
+      CREATE DATABASE IF NOT EXISTS sdv_data;\
+      CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'nsdl1234';\
+      GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION;\
+      FLUSH PRIVILEGES;"
+  loop: "{{ mysql_pods.resources }}"
   vars:
-    mysql_root_password: "admin"
+    mysql_root_password: "Pa$$W0Rd654"
+  become: true
+  become_user: root
+  environment:
+    KUBECONFIG: "/root/.kube/config"
