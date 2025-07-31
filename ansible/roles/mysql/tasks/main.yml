@@ -50,35 +50,35 @@
   debug:
     var: existing_mysql_pv_info
 
-# - name: Render MySQL PersistentVolume template
-#   template:
-#     src: "{{ role_path }}/templates/mysql-pv.yml.j2"
-#     dest: "/tmp/mysql-pv.yml"
-#   when: not existing_mysql_pv_info.resources is defined or existing_mysql_pv_info.resources | length == 0 or \
-#         (existing_mysql_pv_info.resources is defined and existing_mysql_pv_info.resources | length > 0 and \
-#          (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or \
-#           existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
+- name: Render MySQL PersistentVolume template
+  template:
+    src: "{{ role_path }}/templates/mysql-pv.yml.j2"
+    dest: "/tmp/mysql-pv.yml"
+  when: not existing_mysql_pv_info.resources or 
+        (existing_mysql_pv_info.resources | length > 0 and 
+         (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or 
+          existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
     state: present
     src: "/tmp/mysql-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  when: not existing_mysql_pv_info.resources is defined or existing_mysql_pv_info.resources | length == 0 or \
-        (existing_mysql_pv_info.resources is defined and existing_mysql_pv_info.resources | length > 0 and \
-         (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or \
+  when: not existing_mysql_pv_info.resources or 
+        (existing_mysql_pv_info.resources | length > 0 and 
+         (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or 
           existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Fail if existing MySQL PV has incorrect nodeAffinity
   fail:
-    msg: |-
+    msg: |
       Existing MySQL PersistentVolume 'mysql-pv' has an incorrect nodeAffinity.
       Current: {{ existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] }}
       Expected: {{ k8s_node_name.stdout }}
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv mysql-pv pvc mysql-pvc -n sdv) and re-run the playbook.
-  when: existing_mysql_pv_info.resources is defined and existing_mysql_pv_info.resources | length > 0 and \
-        (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or \
+  when: existing_mysql_pv_info.resources and 
+        (existing_mysql_pv_info.resources[0].spec.nodeAffinity is not defined or 
          existing_mysql_pv_info.resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout)
 
 
