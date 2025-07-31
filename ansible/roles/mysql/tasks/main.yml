@@ -166,7 +166,7 @@
       FLUSH PRIVILEGES;"
   loop: "{{ mysql_pods.resources }}"
   vars:
-    mysql_root_password: "Pa$$W0Rd654"
+    mysql_root_password: "admin"
   become: true
   become_user: root
   environment:
