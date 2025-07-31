@@ -33,6 +33,10 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: sdv_frontend_pods
 
+- name: Debug - sdv-frontend pods info
+  debug:
+    var: sdv_frontend_pods
+
 - name: Fail if sdv-frontend pods are not running
   fail:
     msg: "sdv-frontend pods are not running"
