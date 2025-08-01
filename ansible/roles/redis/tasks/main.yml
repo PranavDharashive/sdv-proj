@@ -25,21 +25,16 @@
   debug:
     var: redis_deployment_info.stdout
 
-- name: Wait for Redis deployment to be ready
-  kubernetes.core.k8s_info:
-    kind: Deployment
-    name: redis-deployment
-    namespace: sdv
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Get Redis pods
+- name: Wait for Redis pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: sdv
     label_selectors:
       - app=redis
+    wait: yes
+    wait_condition: Ready
+    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: redis_pods
 
 - name: Debug - Redis pods info
   debug:
@@ -58,8 +53,3 @@
   debug:
     var: redis_pod_events.stdout_lines
   when: redis_pods.resources | length > 0
-
-- name: Fail if Redis pods are not running
-  fail:
-    msg: "Redis pods are not running"
-  when: redis_pods.resources | length == 0 or redis_pods.resources[0].status.phase != 'Running' or not redis_pods.resources[0].status.containerStatuses[0].ready

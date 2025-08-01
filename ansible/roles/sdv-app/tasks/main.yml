@@ -17,41 +17,17 @@
   debug:
     var: sdv_app_deployment_info.stdout
 
-- name: Wait for sdv-app deployment to be ready
-  kubernetes.core.k8s_info:
-    kind: Deployment
-    name: sdv-app-deployment
-    namespace: sdv
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Get sdv-app pods
+- name: Wait for sdv-app pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: sdv
     label_selectors:
       - app=sdv-app
+    wait: yes
+    wait_condition: Ready
+    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: sdv_app_pods
 
 - name: Debug - sdv-app pods info
   debug:
     var: sdv_app_pods
-
-- name: Get sdv-app pod events
-  command: kubectl describe pod {{ sdv_app_pods.resources[0].metadata.name }} -n sdv
-  register: sdv_app_pod_events
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
-  when: sdv_app_pods.resources | length > 0
-
-- name: Debug - sdv-app pod events
-  debug:
-    var: sdv_app_pod_events.stdout_lines
-  when: sdv_app_pods.resources | length > 0
-
-- name: Fail if sdv-app pods are not running
-  fail:
-    msg: "sdv-app pods are not running"
-  when: sdv_app_pods.resources | length == 0 or sdv_app_pods.resources[0].status.phase != 'Running' or not sdv_app_pods.resources[0].status.containerStatuses[0].ready

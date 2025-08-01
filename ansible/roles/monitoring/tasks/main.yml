@@ -76,52 +76,32 @@
   debug:
     var: prometheus_deployment_info.stdout
 
-- name: Wait for Prometheus deployment to be ready
-  kubernetes.core.k8s_info:
-    kind: Deployment
-    name: prometheus-deployment
-    namespace: monitoring
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Wait for Grafana deployment to be ready
-  kubernetes.core.k8s_info:
-    kind: Deployment
-    name: grafana-deployment
-    namespace: monitoring
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Get Prometheus pods
+- name: Wait for Prometheus pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: monitoring
     label_selectors:
       - app=prometheus
+    wait: yes
+    wait_condition: Ready
+    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: prometheus_pods
 
 - name: Debug - Prometheus pods info
   debug:
     var: prometheus_pods
 
-- name: Fail if Prometheus pods are not running
-  fail:
-    msg: "Prometheus pods are not running"
-  when: prometheus_pods.resources | length == 0 or prometheus_pods.resources[0].status.phase != 'Running' or not prometheus_pods.resources[0].status.containerStatuses[0].ready
-
-- name: Get Grafana pods
+- name: Wait for Grafana pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: monitoring
     label_selectors:
       - app=grafana
+    wait: yes
+    wait_condition: Ready
+    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: grafana_pods
 
 - name: Debug - Grafana pods info
   debug:
     var: grafana_pods
-
-- name: Fail if Grafana pods are not running
-  fail:
-    msg: "Grafana pods are not running"
-  when: grafana_pods.resources | length == 0 or grafana_pods.resources[0].status.phase != 'Running' or not grafana_pods.resources[0].status.containerStatuses[0].ready

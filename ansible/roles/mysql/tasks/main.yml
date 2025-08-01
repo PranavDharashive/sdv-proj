@@ -38,10 +38,35 @@
   debug:
     var: k8s_node_name.stdout
 
+- name: Get existing MySQL PersistentVolume info
+  kubernetes.core.k8s_info:
+    kind: PersistentVolume
+    name: mysql-pv
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: existing_mysql_pv_info
+  ignore_errors: yes
+
+- name: Debug - Existing MySQL PV info (full variable)
+  debug:
+    var: existing_mysql_pv_info
+
+- name: Debug - Type of existing_mysql_pv_info.resources
+  debug:
+    msg: "Type of existing_mysql_pv_info.resources: {{ existing_mysql_pv_info.resources | type_debug }}"
+
+- name: Debug - Content of existing_mysql_pv_info.resources
+  debug:
+    var: existing_mysql_pv_info.resources
+
+- name: Set fact for normalized existing_mysql_pv_resources
+  set_fact:
+    normalized_existing_mysql_pv_resources: "{{ existing_mysql_pv_info.resources | default([]) }}"
+
 - name: Render MySQL PersistentVolume template
   template:
     src: "{{ role_path }}/templates/mysql-pv.yml.j2"
     dest: "/tmp/mysql-pv.yml"
+  when: (normalized_existing_mysql_pv_resources | length == 0) or (normalized_existing_mysql_pv_resources | length > 0 and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
@@ -73,8 +98,10 @@
     kind: PersistentVolumeClaim
     name: mysql-pvc
     namespace: sdv
+    wait: yes
+    wait_condition: Bound
+    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: mysql_pvc_info
 
 - name: Debug - MySQL PVC info after wait
   debug:
