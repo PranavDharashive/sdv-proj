@@ -159,6 +159,24 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: minio_pods
 
+- name: Debug - MinIO pods info
+  debug:
+    var: minio_pods
+
+- name: Get MinIO pod events
+  command: kubectl describe pod {{ minio_pods.resources[0].metadata.name }} -n minio
+  register: minio_pod_events
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+  when: minio_pods.resources | length > 0
+
+- name: Debug - MinIO pod events
+  debug:
+    var: minio_pod_events.stdout_lines
+  when: minio_pods.resources | length > 0
+
 - name: Fail if MinIO pods are not running
   fail:
     msg: "MinIO pods are not running"
