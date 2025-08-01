@@ -82,9 +82,6 @@
     namespace: monitoring
     label_selectors:
       - app=prometheus
-    wait: yes
-    wait_condition: Ready
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Prometheus pods info
@@ -97,9 +94,6 @@
     namespace: monitoring
     label_selectors:
       - app=grafana
-    wait: yes
-    wait_condition: Ready
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - Grafana pods info
