@@ -117,6 +117,10 @@
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: grafana_pods
 
+- name: Debug - Grafana pods info
+  debug:
+    var: grafana_pods
+
 - name: Fail if Grafana pods are not running
   fail:
     msg: "Grafana pods are not running"
