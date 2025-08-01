@@ -56,8 +56,14 @@
 - name: Deploy Grafana Dashboards ConfigMap
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/grafana-dashboards.yml"
+    api_version: v1
+    kind: ConfigMap
+    name: grafana-dashboards
+    namespace: monitoring
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+    data:
+      kubernetes-dashboard.json: |
+        {{ lookup('file', '{{ role_path }}/files/1860_rev1.json') | to_nice_json }}
 
 - name: Debug - Get Prometheus deployment info
   command: kubectl get deployment prometheus-deployment -n monitoring -o json
