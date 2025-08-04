@@ -23,9 +23,6 @@
     namespace: sdv
     label_selectors:
       - app=sdv-app
-    wait: yes
-    wait_condition: Ready
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Debug - sdv-app pods info
