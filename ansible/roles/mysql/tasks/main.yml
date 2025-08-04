@@ -93,15 +93,25 @@
     src: "{{ role_path }}/files/mysql-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get MySQL PVC info before wait
+  command: kubectl get pvc mysql-pvc -n sdv -o json
+  register: mysql_pvc_raw_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MySQL PVC raw info
+  debug:
+    var: mysql_pvc_raw_info.stdout
+
 - name: Wait for MySQL PVC to be bound
   kubernetes.core.k8s_info:
     kind: PersistentVolumeClaim
     name: mysql-pvc
     namespace: sdv
-    wait: yes
-    wait_condition: Bound
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: mysql_pvc_info
 
 - name: Debug - MySQL PVC info after wait
   debug:
@@ -188,7 +198,7 @@
     kubectl exec -n sdv {{ item.metadata.name }} -- \
     mysql -h '127.0.0.1' -P '3306' -u root -p'{{ mysql_root_password }}' -e "\
       CREATE DATABASE IF NOT EXISTS sdv_data;\
-      CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'nsdl1234';\
+      CREATE USER IF NOT EXISTS 'sdvuser'@'%' IDENTIFIED BY 'abcd1234';\
       GRANT ALL PRIVILEGES ON *.* TO 'sdvuser'@'%' WITH GRANT OPTION;\
       FLUSH PRIVILEGES;"
   loop: "{{ mysql_pods.resources }}"
