@@ -73,18 +73,17 @@
     state: present
     src: "/tmp/mysql-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  register: mysql_pv_deploy_result
-  ignore_errors: yes
+  when: (normalized_existing_mysql_pv_resources | length == 0) or (normalized_existing_mysql_pv_resources | length > 0 and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
-- name: Fail if MySQL PV deployment failed due to immutable field
+- name: Fail if existing MySQL PV has incorrect nodeAffinity
   fail:
     msg: |
-      Failed to deploy MySQL PersistentVolume 'mysql-pv'.
-      Error: {{ mysql_pv_deploy_result.msg }}
-      This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
+      Existing MySQL PersistentVolume 'mysql-pv' has an incorrect nodeAffinity.
+      Current: {{ normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] }}
+      Expected: {{ k8s_node_name.stdout }}
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv mysql-pv pvc mysql-pvc -n sdv) and re-run the playbook.
-  when: mysql_pv_deploy_result.failed and 'field is immutable' in mysql_pv_deploy_result.msg
+  when: (normalized_existing_mysql_pv_resources | length > 0) and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout)
 
 
 - name: Deploy MySQL PersistentVolumeClaim
@@ -92,18 +91,6 @@
     state: present
     src: "{{ role_path }}/files/mysql-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Debug - Get MySQL PVC info before wait
-  command: kubectl get pvc mysql-pvc -n sdv -o json
-  register: mysql_pvc_raw_info
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Debug - Print MySQL PVC raw info
-  debug:
-    var: mysql_pvc_raw_info.stdout
 
 - name: Wait for MySQL PVC to be bound
   kubernetes.core.k8s_info:
