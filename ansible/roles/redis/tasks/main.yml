@@ -25,6 +25,10 @@
   debug:
     var: redis_deployment_info.stdout
 
+- name: Initialize redis_pods variable
+  set_fact:
+    redis_pods: {}
+
 - name: Wait for Redis pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
@@ -32,6 +36,7 @@
     label_selectors:
       - app=redis
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: redis_pods
 
 - name: Debug - Redis pods info
   debug:
