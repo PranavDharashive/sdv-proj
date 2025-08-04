@@ -77,16 +77,6 @@
     src: "{{ role_path }}/files/minio-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
-- name: Wait for MinIO PVC to be bound
-  kubernetes.core.k8s_info:
-    kind: PersistentVolumeClaim
-    name: minio-pvc
-    namespace: minio
-    wait: yes
-    wait_condition: Bound
-    wait_timeout: 60
-    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-
 - name: Render MinIO deployment template
   template:
     src: "{{ role_path }}/templates/minio-deployment.yml.j2"
