@@ -85,7 +85,7 @@
       This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv mysql-pv pvc mysql-pvc -n sdv) and re-run the playbook.
-  when: mysql_pv_deploy_result.failed and 'field is immutable' in mysql_pv_deploy_result.msg
+  when: mysql_pv_deploy_result is defined and mysql_pv_deploy_result.failed is defined and mysql_pv_deploy_result.failed and 'field is immutable' in mysql_pv_deploy_result.msg
 
 
 - name: Deploy MySQL PersistentVolumeClaim
