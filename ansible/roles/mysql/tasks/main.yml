@@ -66,24 +66,26 @@
   template:
     src: "{{ role_path }}/templates/mysql-pv.yml.j2"
     dest: "/tmp/mysql-pv.yml"
-  when: (normalized_existing_mysql_pv_resources | length == 0) or (normalized_existing_mysql_pv_resources | length > 0 and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
+  when: normalized_existing_mysql_pv_resources | length == 0
 
 - name: Deploy MySQL PersistentVolume
   kubernetes.core.k8s:
     state: present
     src: "/tmp/mysql-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
-  when: (normalized_existing_mysql_pv_resources | length == 0) or (normalized_existing_mysql_pv_resources | length > 0 and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
+  register: mysql_pv_deploy_result
+  ignore_errors: yes
+  when: normalized_existing_mysql_pv_resources | length == 0
 
-- name: Fail if existing MySQL PV has incorrect nodeAffinity
+- name: Fail if MySQL PV deployment failed due to immutable field
   fail:
     msg: |
-      Existing MySQL PersistentVolume 'mysql-pv' has an incorrect nodeAffinity.
-      Current: {{ normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] }}
-      Expected: {{ k8s_node_name.stdout }}
+      Failed to deploy MySQL PersistentVolume 'mysql-pv'.
+      Error: {{ mysql_pv_deploy_result.msg }}
+      This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv mysql-pv pvc mysql-pvc -n sdv) and re-run the playbook.
-  when: (normalized_existing_mysql_pv_resources | length > 0) and (normalized_existing_mysql_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_mysql_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout)
+  when: mysql_pv_deploy_result.failed and 'field is immutable' in mysql_pv_deploy_result.msg
 
 
 - name: Deploy MySQL PersistentVolumeClaim
