@@ -52,7 +52,6 @@
   template:
     src: "{{ role_path }}/templates/minio-pv.yml.j2"
     dest: "/tmp/minio-pv.yml"
-  when: (normalized_existing_minio_pv_resources | length == 0) or (normalized_existing_minio_pv_resources | length > 0 and (normalized_existing_minio_pv_resources[0].spec.nodeAffinity is not defined or normalized_existing_minio_pv_resources[0].spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0] != k8s_node_name.stdout))
 
 - name: Deploy MinIO PersistentVolume
   kubernetes.core.k8s:
@@ -70,7 +69,7 @@
       This usually means the PV already exists with an incorrect nodeAffinity, which is immutable.
       If this PV contains important data, please back it up manually.
       Then, delete the existing PV and PVC (kubectl delete pv minio-pv pvc minio-pvc -n minio) and re-run the playbook.
-  when: minio_pv_deploy_result.failed and 'field is immutable' in minio_pv_deploy_result.msg
+  when: minio_pv_deploy_result.failed is defined and minio_pv_deploy_result.failed and 'field is immutable' in minio_pv_deploy_result.msg
 
 - name: Deploy MinIO PersistentVolumeClaim
   kubernetes.core.k8s:
@@ -78,23 +77,14 @@
     src: "{{ role_path }}/files/minio-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
-- name: Debug - Get MinIO PVC info before wait
-  command: kubectl get pvc minio-pvc -n minio -o json
-  register: minio_pvc_raw_info
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
-
-- name: Debug - Print MinIO PVC raw info
-  debug:
-    var: minio_pvc_raw_info.stdout
-
 - name: Wait for MinIO PVC to be bound
   kubernetes.core.k8s_info:
     kind: PersistentVolumeClaim
     name: minio-pvc
     namespace: minio
+    wait: yes
+    wait_condition: Bound
+    wait_timeout: 60
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Render MinIO deployment template
