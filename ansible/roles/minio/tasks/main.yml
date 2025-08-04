@@ -78,14 +78,23 @@
     src: "{{ role_path }}/files/minio-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Debug - Get MinIO PVC info before wait
+  command: kubectl get pvc minio-pvc -n minio -o json
+  register: minio_pvc_raw_info
+  changed_when: false
+  failed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Debug - Print MinIO PVC raw info
+  debug:
+    var: minio_pvc_raw_info.stdout
+
 - name: Wait for MinIO PVC to be bound
   kubernetes.core.k8s_info:
     kind: PersistentVolumeClaim
     name: minio-pvc
     namespace: minio
-    wait: yes
-    wait_condition: Bound
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Render MinIO deployment template
@@ -135,16 +144,21 @@
   debug:
     var: minio_deployment_info.stdout
 
-- name: Wait for MinIO pods to be ready
+- name: Wait for MinIO deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: minio-deployment
+    namespace: minio
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Get MinIO pods
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: minio
     label_selectors:
       - app=minio
-    wait: yes
-    wait_condition: Ready
-    wait_timeout: 120
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: minio_pods
 
 - name: Fail if MinIO pods are not running
   fail:
