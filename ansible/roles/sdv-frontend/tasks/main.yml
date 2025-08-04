@@ -17,6 +17,10 @@
   debug:
     var: sdv_frontend_deployment_info.stdout
 
+- name: Initialize sdv_frontend_pods variable
+  set_fact:
+    sdv_frontend_pods: {}
+
 - name: Wait for sdv-frontend pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
@@ -24,6 +28,7 @@
     label_selectors:
       - app=sdv-frontend
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+  register: sdv_frontend_pods
 
 - name: Debug - sdv-frontend pods info
   debug:
@@ -36,4 +41,4 @@
 - name: Fail if sdv-frontend pods are not running
   fail:
     msg: "sdv-frontend pods are not running"
-  when: sdv_frontend_pods.resources | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running' or not sdv_frontend_pods.resources[0].status.containerStatuses[0].ready
+  when: sdv_frontend_pods.resources | default([]) | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running' or not sdv_frontend_pods.resources[0].status.containerStatuses[0].ready
