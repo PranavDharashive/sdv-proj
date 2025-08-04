@@ -44,9 +44,14 @@
   failed_when: false
   environment:
     KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
-  when: redis_pods.resources | length > 0
+  when: redis_pods.resources | default([]) | length > 0
 
 - name: Debug - Redis pod events
   debug:
     var: redis_pod_events.stdout_lines
-  when: redis_pods.resources | length > 0
+  when: redis_pods.resources | default([]) | length > 0
+
+- name: Fail if Redis pods are not running
+  fail:
+    msg: "Redis pods are not running"
+  when: redis_pods.resources | default([]) | length == 0 or redis_pods.resources[0].status.phase != 'Running' or not redis_pods.resources[0].status.containerStatuses[0].ready
