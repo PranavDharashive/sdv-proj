@@ -77,6 +77,42 @@
     src: "{{ playbook_dir }}/../k8s-manifests/prometheus-clusterrolebinding.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Create prometheus-data directory
+  file:
+    path: /mnt/prometheus-data
+    state: directory
+    mode: '0755'
+
+- name: Create grafana-data directory
+  file:
+    path: /mnt/grafana-data
+    state: directory
+    mode: '0755'
+
+- name: Deploy Prometheus PV
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/prometheus-pv.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy Prometheus PVC
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/prometheus-pvc.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy Grafana PV
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/grafana-pv.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Deploy Grafana PVC
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/grafana-pvc.yml"
+    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
+
 - name: Deploy Prometheus
   kubernetes.core.k8s:
     state: present

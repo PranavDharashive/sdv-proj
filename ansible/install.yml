@@ -40,5 +40,6 @@
     - minio
     - sdv-app
     - sdv-frontend
+    #    - nginx-ingress
   environment:
     KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"

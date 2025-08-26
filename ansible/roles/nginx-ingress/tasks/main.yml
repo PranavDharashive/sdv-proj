@@ -1,0 +1,6 @@
+---
+#- name: Deploy Nginx Ingress Controller
+#  kubernetes.core.k8s:
+#    state: present
+#    src: "{{ playbook_dir }}/../k8s-manifests/ingress-controller.yaml"
+#    kubeconfig: "{{ ansible_user_dir }}/.kube/config"
