@@ -17,10 +17,6 @@
   debug:
     var: sdv_frontend_deployment_info.stdout
 
-- name: Initialize sdv_frontend_pods variable
-  set_fact:
-    sdv_frontend_pods: {}
-
 - name: Wait for sdv-frontend pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
@@ -29,30 +25,12 @@
       - app=sdv-frontend
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: sdv_frontend_pods
+  until: sdv_frontend_pods.resources | default([]) | length > 0 and sdv_frontend_pods.resources[0].status.phase == 'Running' and sdv_frontend_pods.resources[0].status.containerStatuses[0].ready
+  retries: 30
+  delay: 10
 
 - name: Debug - sdv-frontend pods info
   debug:
     var: sdv_frontend_pods
 
-- name: Get sdv-frontend pod events
-  command: kubectl describe pod {{ sdv_frontend_pods.resources[0].metadata.name }} -n sdv
-  register: sdv_frontend_pod_events
-  changed_when: false
-  failed_when: false
-  environment:
-    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
-  when: sdv_frontend_pods.resources | default([]) | length > 0
 
-- name: Debug - sdv-frontend pod events
-  debug:
-    var: sdv_frontend_pod_events.stdout_lines
-  when: sdv_frontend_pods.resources | default([]) | length > 0
-
-- name: Pause for 60 seconds to allow sdv-frontend pod to stabilize
-  pause:
-    seconds: 60
-
-- name: Fail if sdv-frontend pods are not running
-  fail:
-    msg: "sdv-frontend pods are not running"
-  when: sdv_frontend_pods.resources | default([]) | length == 0 or sdv_frontend_pods.resources[0].status.phase != 'Running' or not sdv_frontend_pods.resources[0].status.containerStatuses[0].ready

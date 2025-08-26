@@ -131,7 +131,7 @@
     namespace: minio
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
-- name: Get MinIO pods
+- name: Wait for MinIO pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: minio
@@ -139,16 +139,12 @@
       - app=minio
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: minio_pods
+  until: minio_pods.resources | default([]) | length > 0 and minio_pods.resources[0].status.phase == 'Running' and minio_pods.resources[0].status.containerStatuses[0].ready
+  retries: 30
+  delay: 10
 
 - name: Debug - MinIO pods info
   debug:
     var: minio_pods
 
-- name: Pause for 60 seconds to allow MinIO pod to stabilize
-  pause:
-    seconds: 60
 
-- name: Fail if MinIO pods are not running
-  fail:
-    msg: "MinIO pods are not running"
-  when: minio_pods.resources | length == 0 or minio_pods.resources[0].status.phase != 'Running' or not minio_pods.resources[0].status.containerStatuses[0].ready

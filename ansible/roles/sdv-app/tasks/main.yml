@@ -17,10 +17,6 @@
   debug:
     var: sdv_app_deployment_info.stdout
 
-- name: Initialize sdv_app_pods variable
-  set_fact:
-    sdv_app_pods: {}
-
 - name: Wait for sdv-app pods to be ready
   kubernetes.core.k8s_info:
     kind: Pod
@@ -29,16 +25,12 @@
       - app=sdv-app
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
   register: sdv_app_pods
+  until: sdv_app_pods.resources | default([]) | length > 0 and sdv_app_pods.resources[0].status.phase == 'Running' and sdv_app_pods.resources[0].status.containerStatuses[0].ready
+  retries: 30
+  delay: 10
 
 - name: Debug - sdv-app pods info
   debug:
     var: sdv_app_pods
 
-- name: Pause for 60 seconds to allow sdv-app pod to stabilize
-  pause:
-    seconds: 60
 
-- name: Fail if sdv-app pods are not running
-  fail:
-    msg: "sdv-app pods are not running"
-  when: sdv_app_pods.resources | default([]) | length == 0 or sdv_app_pods.resources[0].status.phase != 'Running' or not sdv_app_pods.resources[0].status.containerStatuses[0].ready
