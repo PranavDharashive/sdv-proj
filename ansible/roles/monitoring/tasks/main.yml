@@ -89,10 +89,15 @@
     state: directory
     mode: '0755'
 
+- name: Render Prometheus PersistentVolume template
+  template:
+    src: "{{ role_path }}/templates/prometheus-pv.yml.j2"
+    dest: "/tmp/prometheus-pv.yml"
+
 - name: Deploy Prometheus PV
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/prometheus-pv.yml"
+    src: "/tmp/prometheus-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Prometheus PVC
@@ -101,10 +106,15 @@
     src: "{{ role_path }}/files/prometheus-pvc.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Render Grafana PersistentVolume template
+  template:
+    src: "{{ role_path }}/templates/grafana-pv.yml.j2"
+    dest: "/tmp/grafana-pv.yml"
+
 - name: Deploy Grafana PV
   kubernetes.core.k8s:
     state: present
-    src: "{{ role_path }}/files/grafana-pv.yml"
+    src: "/tmp/grafana-pv.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
 - name: Deploy Grafana PVC
