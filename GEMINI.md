@@ -10,7 +10,7 @@ I. Core Automation Framework:
   II. Kubernetes Cluster Setup:
    1. Kubeadm Prerequisites:
        * Setup kubeadm prerequisites.
-       * Consider containerd as the container runtime.
+       * Consider containerd as the container runtime and also I want to setup docker runtime both on this single node, i want to run docker for other apps and containerd for kubernetes, make sure that docker and container both will be running and using "systemd" as a cgroup driver for both
        * Include specific commands: sudo swapoff -a, sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab, sudo tee
          /etc/modules-load.d/containerd.conf, sudo modprobe overlay, sudo modprobe br_netfilter, sudo tee /etc/sysctl.d/kubernetes.conf, sudo
          sysctl --system.
