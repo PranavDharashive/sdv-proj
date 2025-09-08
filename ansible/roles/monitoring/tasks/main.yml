@@ -77,6 +77,13 @@
     src: "{{ playbook_dir }}/../k8s-manifests/prometheus-clusterrolebinding.yml"
     kubeconfig: "{{ ansible_user_dir }}/.kube/config"
 
+- name: Get Kubernetes node name
+  command: kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+  register: k8s_node_name
+  changed_when: false
+  environment:
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
 - name: Create prometheus-data directory
   file:
     path: /mnt/prometheus-data
