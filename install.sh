@@ -11,6 +11,8 @@ read -p "Enter the Kubernetes version to install (e.g., 1.31.0): " K8S_VERSION
 # Set KUBECONFIG environment variable for Ansible
 export KUBECONFIG="$HOME/.kube/config"
 
+export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections
+
 # Run the ansible playbook and log the output
 ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_IP" -e "k8s_version=$K8S_VERSION" | tee $LOG_FILE
 
