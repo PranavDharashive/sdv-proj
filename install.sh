@@ -1,7 +1,7 @@
 #!/bin/bash
 
-
 LOG_FILE="install-$(date +%Y%m%d-%H%M%S).log"
+exec &> >(tee -a "$LOG_FILE")
 
 # Prompt for Kube-apiserver endpoint IP
 read -p "Enter the private IP address for Kube-apiserver endpoint: " KUBE_API_IP
@@ -9,13 +9,20 @@ read -p "Enter the private IP address for Kube-apiserver endpoint: " KUBE_API_IP
 # Prompt for Kubernetes version
 read -p "Enter the Kubernetes version to install (e.g., 1.31.0): " K8S_VERSION
 
-# Install Ansible
-sudo apt update
-sudo apt install -y software-properties-common
-sudo add-apt-repository --yes --update ppa:ansible/ansible
-sudo apt install -y ansible
-echo "Ansible version installed is:"
-ansible --version
+# Install Ansible if not already installed
+if ! command -v ansible &> /dev/null
+then
+    echo "Ansible not found, installing..."
+    sudo apt update
+    sudo apt install -y software-properties-common
+    sudo add-apt-repository --yes --update ppa:ansible/ansible
+    sudo apt install -y ansible
+    echo "Ansible version installed is:"
+    ansible --version
+else
+    echo "Ansible is already installed."
+    ansible --version
+fi
 
 # Set KUBECONFIG environment variable for Ansible
 export KUBECONFIG="$HOME/.kube/config"
@@ -27,7 +34,7 @@ ansible-galaxy collection install kubernetes.core
 ansible-galaxy collection install community.general
 
 # Run the ansible playbook and log the output
-ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_IP" -e "k8s_version=$K8S_VERSION" | tee $LOG_FILE
+ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_IP" -e "k8s_version=$K8S_VERSION"
 
 # Check if the ansible-playbook command was successful
 # if [ $? -eq 0 ]; then
