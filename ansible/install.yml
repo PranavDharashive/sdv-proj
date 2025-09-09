@@ -1,12 +1,16 @@
 ---
 - hosts: all
   become: yes
+  collections:
+    - kubernetes.core
   roles:
     - k8s-prereqs
     - kubeadm-cluster
 
 - hosts: all
   become: yes
+  collections:
+    - kubernetes.core
   tasks:
     - name: Check current Kubernetes node readiness
       command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
@@ -29,6 +33,8 @@
 
 - hosts: all
   become: yes
+  collections:
+    - kubernetes.core
   roles:
     - monitoring
     - redis
