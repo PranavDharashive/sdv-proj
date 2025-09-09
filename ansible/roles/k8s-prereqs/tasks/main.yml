@@ -1,9 +1,6 @@
 ---
-- name: Install kubernetes.core collection
-  command: ansible-galaxy collection install kubernetes.core
-
 - name: Load kernel modules
-  modprobe:
+  community.general.modprobe:
     name: "{{ item }}"
     state: present
   loop:
