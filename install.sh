@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Install Ansible
-sudo apt update
-sudo apt install -y software-properties-common
-sudo add-apt-repository --yes --update ppa:ansible/ansible
-sudo apt install -y ansible
 
 LOG_FILE="install-$(date +%Y%m%d-%H%M%S).log"
 
@@ -13,6 +8,14 @@ read -p "Enter the private IP address for Kube-apiserver endpoint: " KUBE_API_IP
 
 # Prompt for Kubernetes version
 read -p "Enter the Kubernetes version to install (e.g., 1.31.0): " K8S_VERSION
+
+# Install Ansible
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install -y ansible
+echo "Ansible version installed is:"
+ansible --version
 
 # Set KUBECONFIG environment variable for Ansible
 export KUBECONFIG="$HOME/.kube/config"
