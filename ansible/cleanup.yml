@@ -18,12 +18,16 @@
         - kubectl
         - kubelet
 
-    - name: Remove containerd package
+    - name: Remove Docker packages
       apt:
-        name: containerd
+        name: "{{ item }}"
         state: absent
         autoremove: yes
         purge: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
 
     - name: Flush iptables rules
       shell: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
