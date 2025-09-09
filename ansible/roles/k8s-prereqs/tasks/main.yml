@@ -51,7 +51,7 @@
 - name: Add Docker GPG key
   get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.asc
+    dest: /etc/apt/keyrings/docker-apt-keyring.asc
 
 - name: Add Docker apt repository
   copy:
