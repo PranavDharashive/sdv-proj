@@ -13,6 +13,10 @@ export KUBECONFIG="$HOME/.kube/config"
 
 export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections
 
+# Install required Ansible collections
+ansible-galaxy collection install kubernetes.core
+ansible-galaxy collection install community.general
+
 # Run the ansible playbook and log the output
 ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_IP" -e "k8s_version=$K8S_VERSION" | tee $LOG_FILE
 
