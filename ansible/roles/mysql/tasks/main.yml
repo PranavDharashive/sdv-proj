@@ -106,6 +106,19 @@
   debug:
     var: mysql_pvc_info
 
+- name: Wait for Kubernetes API server to be ready
+  uri:
+    url: "https://{{ kube_api_ip }}:6443/livez?verbose"
+    validate_certs: no
+  register: api_livez
+  until: >
+    api_livez.status == 200 and
+    '[+]poststarthook/start-kube-apiserver-admission-initializer' in api_livez.content and
+    '[+]poststarthook/generic-apiserver-start-informers' in api_livez.content
+  retries: 10
+  delay: 15
+  ignore_errors: yes
+
 - name: Render MySQL deployment template
   template:
     src: "{{ role_path }}/templates/mysql-deployment.yml.j2"
