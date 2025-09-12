@@ -139,11 +139,11 @@
     line: '            SystemdCgroup = true'
     state: present
 
-#- name: Enable CRI plugin in containerd
-#  replace:
-#    path: /etc/containerd/config.toml
-#    regexp: 'disabled_plugins = \["cri"\]'
-#    replace: 'disabled_plugins = []'
+- name: Enable CRI plugin in containerd
+  replace:
+    path: /etc/containerd/config.toml
+    regexp: 'disabled_plugins = \["cri"\]'
+    replace: 'disabled_plugins = []'
 
 - name: Restart containerd
   systemd:
@@ -179,3 +179,9 @@
     - kubelet
     - kubeadm
     - kubectl
+
+- name: Enable and start kubelet service
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
