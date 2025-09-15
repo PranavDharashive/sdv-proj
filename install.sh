@@ -5,6 +5,7 @@ exec &> >(tee -a "$LOG_FILE")
 
 # Prompt for Kube-apiserver endpoint IP
 read -p "Enter the private IP address for Kube-apiserver endpoint: " KUBE_API_IP
+echo "Kube-apiserver endpoint IP entered: $KUBE_API_IP" >> "$LOG_FILE"
 
 # Prompt for Kubernetes version with validation
 K8S_VERSION=""
@@ -14,6 +15,7 @@ while [[ ! "$K8S_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; do
     echo "Invalid Kubernetes version format. Please enter a version like 1.31.0 or 1.31."
   fi
 done
+echo "Kubernetes version entered: $K8S_VERSION" >> "$LOG_FILE"
 
 # Install Ansible if not already installed
 if ! command -v ansible &> /dev/null
