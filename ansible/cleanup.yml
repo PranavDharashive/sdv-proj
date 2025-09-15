@@ -29,6 +29,27 @@
         - docker-ce-cli
         - containerd.io
 
+    - name: Stop and disable HAProxy service
+      systemd:
+        name: haproxy
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Remove HAProxy package
+      apt:
+        name: haproxy
+        state: absent
+        autoremove: yes
+        purge: yes
+      ignore_errors: yes
+
+    - name: Remove HAProxy configuration directory
+      file:
+        path: /etc/haproxy
+        state: absent
+      ignore_errors: yes
+
     - name: Flush iptables rules
       shell: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
 
