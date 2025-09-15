@@ -5,37 +5,37 @@
     - k8s-prereqs
     - kubeadm-cluster
 
-- hosts: all
-  become: yes
-  tasks:
-    - name: Check current Kubernetes node readiness
-      command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
-      register: initial_node_ready_status
-      changed_when: false
-      failed_when: false
-      environment:
-        KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+# - hosts: all
+#   become: yes
+#   tasks:
+#     - name: Check current Kubernetes node readiness
+#       command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+#       register: initial_node_ready_status
+#       changed_when: false
+#       failed_when: false
+#       environment:
+#         KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
 
-    - name: Wait for Kubernetes node to be ready
-      command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
-      register: node_ready_status
-      until: node_ready_status.stdout == "True"
-      retries: 30
-      delay: 10
-      changed_when: false
-      when: initial_node_ready_status.stdout != "True"
-      environment:
-        KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+#     - name: Wait for Kubernetes node to be ready
+#       command: kubectl get nodes {{ ansible_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+#       register: node_ready_status
+#       until: node_ready_status.stdout == "True"
+#       retries: 30
+#       delay: 10
+#       changed_when: false
+#       when: initial_node_ready_status.stdout != "True"
+#       environment:
+#         KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
 
-- hosts: all
-  become: yes
-  roles:
-    - monitoring
-    - redis
-    - mysql
-    - minio
-    - sdv-app
-    - sdv-frontend
-    #    - nginx-ingress
-  environment:
-    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+# - hosts: all
+#   become: yes
+#   roles:
+#     - monitoring
+#     - redis
+#     - mysql
+#     - minio
+#     - sdv-app
+#     - sdv-frontend
+#     #    - nginx-ingress
+#   environment:
+#     KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
