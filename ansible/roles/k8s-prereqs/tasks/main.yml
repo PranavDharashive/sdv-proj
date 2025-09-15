@@ -180,8 +180,3 @@
     - kubeadm
     - kubectl
 
-- name: Enable and start kubelet service
-  systemd:
-    name: kubelet
-    enabled: yes
-    state: started
