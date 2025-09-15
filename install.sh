@@ -10,9 +10,9 @@ echo "Kube-apiserver endpoint IP entered: $KUBE_API_IP" >> "$LOG_FILE"
 # Prompt for Kubernetes version with validation
 K8S_VERSION=""
 while [[ ! "$K8S_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; do
-  read -p "Enter the Kubernetes version to install (e.g., 1.31.0, 1.31): " K8S_VERSION
+  read -p "Enter the Kubernetes version to install (e.g., 1.32.0): " K8S_VERSION
   if [[ ! "$K8S_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-    echo "Invalid Kubernetes version format. Please enter a version like 1.31.0 or 1.31."
+    echo "Invalid Kubernetes version format. Please enter a version like 1.32.0"
   fi
 done
 echo "Kubernetes version entered: $K8S_VERSION" >> "$LOG_FILE"
@@ -49,7 +49,7 @@ ansible-playbook -i inventory.ini ansible/install.yml -e "kube_api_ip=$KUBE_API_
 #   echo "===================================================="
 #   echo "All components deployed and running successfully:"
 #   echo "===================================================="
-#   echo "1. Kubernetes cluster (v1.31) is up and running."
+#   echo "1. Kubernetes cluster ($K8S_VERSION) is up and running."
 #   echo "2. Monitoring stack (Prometheus & Grafana) is up and running."
 #   echo "3. Redis service is up and running."
 #   echo "4. MySQL service is up and running."

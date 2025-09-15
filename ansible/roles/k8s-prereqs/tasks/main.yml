@@ -79,31 +79,31 @@
     state: restarted
     enabled: yes
 
-- name: Create SSL directory
-  file:
-    path: /etc/ssl/private
-    state: directory
+# - name: Create SSL directory
+#   file:
+#     path: /etc/ssl/private
+#     state: directory
 
-- name: Generate self-signed SSL certificate for HAProxy
-  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/haproxy.pem -out /etc/ssl/private/haproxy.pem -subj "/C=US/ST=CA/L=San Francisco/O=MyOrg/OU=MyDept/CN=mydomain.com"
-  args:
-    creates: /etc/ssl/private/haproxy.pem
+# - name: Generate self-signed SSL certificate for HAProxy
+#   command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/haproxy.pem -out /etc/ssl/private/haproxy.pem -subj "/C=US/ST=CA/L=San Francisco/O=MyOrg/OU=MyDept/CN=mydomain.com"
+#   args:
+#     creates: /etc/ssl/private/haproxy.pem
 
-- name: Install HAProxy
-  apt:
-    name: haproxy
-    state: present
+# - name: Install HAProxy
+#   apt:
+#     name: haproxy
+#     state: present
 
-- name: Deploy HAProxy configuration
-  template:
-    src: haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.cfg
+# - name: Deploy HAProxy configuration
+#   template:
+#     src: haproxy.cfg.j2
+#     dest: /etc/haproxy/haproxy.cfg
 
-- name: Enable and start HAProxy service
-  systemd:
-    name: haproxy
-    state: restarted
-    enabled: yes
+# - name: Enable and start HAProxy service
+#   systemd:
+#     name: haproxy
+#     state: restarted
+#     enabled: yes
 
 - name: Install required packages
   apt:
